@@ -1,9 +1,9 @@
 "use client";
 
-import { memo, useCallback } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import type { Task } from "../types";
+import { memo, useCallback } from "react";
 import { TASK_STATUS_COLORS, type TaskStatus } from "../constants";
+import type { Task } from "../types";
 
 /**
  * タスクカードコンポーネント
@@ -16,8 +16,20 @@ interface TaskCardProps {
   status?: TaskStatus;
 }
 
-function TaskCardComponent({ task, onDelete, onUpdate, isDragging = false, status }: TaskCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging: isActiveDrag } = useDraggable({
+function TaskCardComponent({
+  task,
+  onDelete,
+  onUpdate: _onUpdate,
+  isDragging = false,
+  status,
+}: TaskCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging: isActiveDrag,
+  } = useDraggable({
     id: task.id,
     disabled: isDragging, // DragOverlay内では無効化
   });
@@ -29,14 +41,17 @@ function TaskCardComponent({ task, onDelete, onUpdate, isDragging = false, statu
     : undefined;
 
   const colors = status ? TASK_STATUS_COLORS[status] : null;
-  const cardColorClass = colors 
-    ? colors.card 
+  const cardColorClass = colors
+    ? colors.card
     : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700";
 
-  const handleDelete = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onDelete(task.id);
-  }, [onDelete, task.id]);
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onDelete(task.id);
+    },
+    [onDelete, task.id],
+  );
 
   return (
     <div
@@ -49,10 +64,9 @@ function TaskCardComponent({ task, onDelete, onUpdate, isDragging = false, statu
       }`}
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-sm font-medium text-black flex-1">
-          {task.title}
-        </h3>
+        <h3 className="text-sm font-medium text-black flex-1">{task.title}</h3>
         <button
+          type="button"
           onClick={handleDelete}
           className="text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
           aria-label="タスクを削除"
@@ -62,7 +76,10 @@ function TaskCardComponent({ task, onDelete, onUpdate, isDragging = false, statu
             className="h-4 w-4"
             viewBox="0 0 20 20"
             fill="currentColor"
+            role="img"
+            aria-label="削除アイコン"
           >
+            <title>削除</title>
             <path
               fillRule="evenodd"
               d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import type { Task } from "../types";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { TaskStatus } from "../constants";
+import type { Task } from "../types";
 
 /**
  * タスク管理用カスタムフック
@@ -28,16 +28,18 @@ export function useTasks() {
         throw new Error("Failed to fetch tasks");
       }
       const data = await response.json();
-      
+
       // コンポーネントがアンマウントされている場合は状態を更新しない
       if (!mountedRef.current) return;
-      
+
       // 日付文字列をDateオブジェクトに変換
-      const tasksWithDates = data.map((task: any) => ({
-        ...task,
-        createdAt: new Date(task.createdAt),
-        updatedAt: new Date(task.updatedAt),
-      }));
+      const tasksWithDates = data.map(
+        (task: { createdAt: string; updatedAt: string }) => ({
+          ...task,
+          createdAt: new Date(task.createdAt),
+          updatedAt: new Date(task.updatedAt),
+        }),
+      );
       setTasks(tasksWithDates);
     } catch (err) {
       if (!mountedRef.current) return;
@@ -78,7 +80,7 @@ export function useTasks() {
         await fetchTasks(false);
       }
     },
-    [fetchTasks]
+    [fetchTasks],
   );
 
   /**
@@ -88,11 +90,11 @@ export function useTasks() {
     async (id: string, updates: Partial<Task>) => {
       // 楽観的UI更新: 先にUIを更新
       setTasks((prev) =>
-        prev.map((task) => 
-          task.id === id 
-            ? { ...task, ...updates, updatedAt: new Date() } 
-            : task
-        )
+        prev.map((task) =>
+          task.id === id
+            ? { ...task, ...updates, updatedAt: new Date() }
+            : task,
+        ),
       );
 
       try {
@@ -112,7 +114,7 @@ export function useTasks() {
           updatedAt: new Date(updatedTask.updatedAt),
         };
         setTasks((prev) =>
-          prev.map((task) => (task.id === id ? taskWithDates : task))
+          prev.map((task) => (task.id === id ? taskWithDates : task)),
         );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -120,7 +122,7 @@ export function useTasks() {
         await fetchTasks(false);
       }
     },
-    [fetchTasks]
+    [fetchTasks],
   );
 
   /**
@@ -143,14 +145,16 @@ export function useTasks() {
         await fetchTasks(false);
       }
     },
-    [fetchTasks]
+    [fetchTasks],
   );
 
   /**
    * タスクの並び順を一括更新
    */
   const updateTaskPositions = useCallback(
-    async (updates: Array<{ id: string; status: TaskStatus; position: number }>) => {
+    async (
+      updates: Array<{ id: string; status: TaskStatus; position: number }>,
+    ) => {
       // 楽観的UI更新: 先にUIを更新
       const updatesMap = new Map(updates.map((u) => [u.id, u]));
       setTasks((prev) =>
@@ -159,7 +163,7 @@ export function useTasks() {
           return update
             ? { ...task, status: update.status, position: update.position }
             : task;
-        })
+        }),
       );
 
       try {
@@ -169,9 +173,9 @@ export function useTasks() {
           body: JSON.stringify({ updates }),
         });
         if (!response.ok) {
-          throw new Error("Failed to update task positions");
           // エラー時は元に戻す
           await fetchTasks(false);
+          throw new Error("Failed to update task positions");
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -179,13 +183,13 @@ export function useTasks() {
         await fetchTasks(false);
       }
     },
-    [fetchTasks]
+    [fetchTasks],
   );
 
   useEffect(() => {
     mountedRef.current = true;
     fetchTasks();
-    
+
     return () => {
       mountedRef.current = false;
     };

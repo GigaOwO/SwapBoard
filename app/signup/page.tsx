@@ -1,7 +1,7 @@
 "use client";
 
-import { SignupForm } from "@/features/auth";
 import Link from "next/link";
+import { SignupForm } from "@/features/auth";
 
 /**
  * サインアップページ

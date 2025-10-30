@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useAuth } from "../hooks";
 import { signupSchema } from "../types";
 
@@ -21,43 +21,52 @@ export function SignupForm() {
   /**
    * フォーム送信処理
    */
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setValidationErrors({});
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setValidationErrors({});
 
-    // バリデーション
-    const result = signupSchema.safeParse({ email, password, confirmPassword });
-    if (!result.success) {
-      const errors: {
-        email?: string;
-        password?: string;
-        confirmPassword?: string;
-      } = {};
-      result.error.issues.forEach((err) => {
-        if (err.path[0] === "email") {
-          errors.email = err.message;
-        } else if (err.path[0] === "password") {
-          errors.password = err.message;
-        } else if (err.path[0] === "confirmPassword") {
-          errors.confirmPassword = err.message;
-        }
+      // バリデーション
+      const result = signupSchema.safeParse({
+        email,
+        password,
+        confirmPassword,
       });
-      setValidationErrors(errors);
-      return;
-    }
+      if (!result.success) {
+        const errors: {
+          email?: string;
+          password?: string;
+          confirmPassword?: string;
+        } = {};
+        result.error.issues.forEach((err) => {
+          if (err.path[0] === "email") {
+            errors.email = err.message;
+          } else if (err.path[0] === "password") {
+            errors.password = err.message;
+          } else if (err.path[0] === "confirmPassword") {
+            errors.confirmPassword = err.message;
+          }
+        });
+        setValidationErrors(errors);
+        return;
+      }
 
-    try {
-      await signup({ email, password, confirmPassword });
-      // サインアップ成功後の処理はuseAuthで管理
-    } catch (err) {
-      // エラーはuseAuthで管理
-      console.error("Signup error:", err);
-    }
-  }, [email, password, confirmPassword, signup]);
+      try {
+        await signup({ email, password, confirmPassword });
+        // サインアップ成功後の処理はuseAuthで管理
+      } catch (err) {
+        // エラーはuseAuthで管理
+        console.error("Signup error:", err);
+      }
+    },
+    [email, password, confirmPassword, signup],
+  );
 
   return (
     <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center text-black">新規登録</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center text-black">
+        新規登録
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* メールアドレス */}

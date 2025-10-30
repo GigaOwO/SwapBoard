@@ -1,36 +1,30 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
 import {
+  closestCorners,
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
+  type DragOverEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
-  DragOverEvent,
 } from "@dnd-kit/core";
-import { useTasks } from "../hooks";
+import { useCallback, useMemo, useState } from "react";
 import { TASK_STATUSES, type TaskStatus } from "../constants";
+import { useTasks } from "../hooks";
 import type { Task } from "../types";
-import { TaskColumn } from "./TaskColumn";
 import { TaskCard } from "./TaskCard";
+import { TaskColumn } from "./TaskColumn";
 
 /**
  * タスクボードコンポーネント
  * @dnd-kitを使用してドラッグ&ドロップ機能を提供
  */
 export function TaskBoard() {
-  const {
-    tasks,
-    loading,
-    error,
-    createTask,
-    deleteTask,
-    updateTask,
-  } = useTasks();
+  const { tasks, loading, error, createTask, deleteTask, updateTask } =
+    useTasks();
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [activeStatus, setActiveStatus] = useState<string | null>(null);
@@ -45,64 +39,73 @@ export function TaskBoard() {
       activationConstraint: {
         distance: 5,
       },
-    })
+    }),
   );
 
   /**
    * ドラッグ開始時の処理
    */
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event;
-    const task = tasks.find((t) => t.id === active.id);
-    if (task) {
-      setActiveTask(task);
-    }
-  }, [tasks]);
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      const task = tasks.find((t) => t.id === active.id);
+      if (task) {
+        setActiveTask(task);
+      }
+    },
+    [tasks],
+  );
 
   /**
    * ドラッグオーバー時の処理（カラム間移動のプレビュー）
    */
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const { active, over } = event;
+      if (!over) return;
 
-    const activeId = active.id as string;
-    const overId = over.id as string;
+      const activeId = active.id as string;
+      const overId = over.id as string;
 
-    // カラムの上にドラッグした場合
-    if (overId.startsWith("column-")) {
-      const newStatus = overId.replace("column-", "") as TaskStatus;
-      const task = tasks.find((t) => t.id === activeId);
-      
-      if (task && task.status !== newStatus) {
-        // 楽観的更新（実際のDB更新はhandleDragEndで行う）
-        setActiveTask({ ...task, status: newStatus });
+      // カラムの上にドラッグした場合
+      if (overId.startsWith("column-")) {
+        const newStatus = overId.replace("column-", "") as TaskStatus;
+        const task = tasks.find((t) => t.id === activeId);
+
+        if (task && task.status !== newStatus) {
+          // 楽観的更新（実際のDB更新はhandleDragEndで行う）
+          setActiveTask({ ...task, status: newStatus });
+        }
       }
-    }
-  }, [tasks]);
+    },
+    [tasks],
+  );
 
   /**
    * ドラッグ終了時の処理
    */
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveTask(null);
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      setActiveTask(null);
 
-    if (!over) return;
+      if (!over) return;
 
-    const taskId = active.id as string;
-    const overId = over.id as string;
+      const taskId = active.id as string;
+      const overId = over.id as string;
 
-    // カラムの上でドロップした場合
-    if (overId.startsWith("column-")) {
-      const newStatus = overId.replace("column-", "") as TaskStatus;
-      const task = tasks.find((t) => t.id === taskId);
+      // カラムの上でドロップした場合
+      if (overId.startsWith("column-")) {
+        const newStatus = overId.replace("column-", "") as TaskStatus;
+        const task = tasks.find((t) => t.id === taskId);
 
-      if (task && task.status !== newStatus) {
-        updateTask(taskId, { status: newStatus });
+        if (task && task.status !== newStatus) {
+          updateTask(taskId, { status: newStatus });
+        }
       }
-    }
-  }, [tasks, updateTask]);
+    },
+    [tasks, updateTask],
+  );
 
   /**
    * タスク追加ハンドラー
@@ -114,14 +117,17 @@ export function TaskBoard() {
   /**
    * タスク作成送信
    */
-  const handleSubmitTask = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTaskTitle.trim() || !activeStatus) return;
+  const handleSubmitTask = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!newTaskTitle.trim() || !activeStatus) return;
 
-    await createTask(newTaskTitle, activeStatus);
-    setNewTaskTitle("");
-    setActiveStatus(null);
-  }, [newTaskTitle, activeStatus, createTask]);
+      await createTask(newTaskTitle, activeStatus);
+      setNewTaskTitle("");
+      setActiveStatus(null);
+    },
+    [newTaskTitle, activeStatus, createTask],
+  );
 
   /**
    * ステータス別にタスクをグループ化（メモ化）
@@ -132,13 +138,13 @@ export function TaskBoard() {
       doing: [] as Task[],
       done: [] as Task[],
     };
-    
+
     for (const task of tasks) {
       if (task.status in grouped) {
         grouped[task.status as keyof typeof grouped].push(task);
       }
     }
-    
+
     return grouped;
   }, [tasks]);
 
@@ -153,9 +159,7 @@ export function TaskBoard() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-red-600">
-          エラー: {error}
-        </div>
+        <div className="text-red-600">エラー: {error}</div>
       </div>
     );
   }
@@ -212,7 +216,6 @@ export function TaskBoard() {
                   onChange={(e) => setNewTaskTitle(e.target.value)}
                   placeholder="タスク名を入力..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  autoFocus
                 />
                 <div className="flex gap-3 mt-4">
                   <button

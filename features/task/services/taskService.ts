@@ -20,7 +20,10 @@ export async function getTasks(userId?: string): Promise<Task[]> {
  * @param userId - ユーザーID（オプション）
  * @returns タスク
  */
-export async function getTaskById(id: string, userId?: string): Promise<Task | null> {
+export async function getTaskById(
+  id: string,
+  userId?: string,
+): Promise<Task | null> {
   const task = await prisma.task.findFirst({
     where: userId ? { id, userId } : { id },
   });
@@ -32,7 +35,9 @@ export async function getTaskById(id: string, userId?: string): Promise<Task | n
  * @param data - タスク作成データ
  * @returns 作成されたタスク
  */
-export async function createTask(data: CreateTaskInput & { userId?: string }): Promise<Task> {
+export async function createTask(
+  data: CreateTaskInput & { userId?: string },
+): Promise<Task> {
   const task = await prisma.task.create({
     data: {
       title: data.title,
@@ -52,7 +57,7 @@ export async function createTask(data: CreateTaskInput & { userId?: string }): P
  */
 export async function updateTask(
   id: string,
-  data: UpdateTaskInput
+  data: UpdateTaskInput,
 ): Promise<Task> {
   const task = await prisma.task.update({
     where: { id },
@@ -78,7 +83,7 @@ export async function deleteTask(id: string): Promise<Task> {
  * @param updates - 更新データの配列 { id, status, position }
  */
 export async function updateTaskPositions(
-  updates: Array<{ id: string; status: string; position: number }>
+  updates: Array<{ id: string; status: string; position: number }>,
 ): Promise<void> {
   await prisma.$transaction(
     updates.map((update) =>
@@ -88,7 +93,7 @@ export async function updateTaskPositions(
           status: update.status,
           position: update.position,
         },
-      })
-    )
+      }),
+    ),
   );
 }

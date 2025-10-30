@@ -1,3 +1,4 @@
+import type { CookieOptions } from "@supabase/ssr";
 import { createServerClient } from "@supabase/ssr";
 import type { Context, Next } from "hono";
 
@@ -14,7 +15,7 @@ export async function authMiddleware(c: Context, next: Next) {
     getAll: () => {
       const cookieHeader = c.req.header("cookie");
       if (!cookieHeader) return [];
-      
+
       return cookieHeader.split(";").map((cookie) => {
         const [name, ...valueParts] = cookie.trim().split("=");
         return {
@@ -23,7 +24,13 @@ export async function authMiddleware(c: Context, next: Next) {
         };
       });
     },
-    setAll: (cookiesToSet: Array<{ name: string; value: string; options?: any }>) => {
+    setAll: (
+      cookiesToSet: Array<{
+        name: string;
+        value: string;
+        options?: CookieOptions;
+      }>,
+    ) => {
       // Honoでは直接レスポンスヘッダーに設定
       cookiesToSet.forEach(({ name, value, options }) => {
         let cookieValue = `${name}=${value}`;
@@ -33,19 +40,19 @@ export async function authMiddleware(c: Context, next: Next) {
         if (options?.secure) cookieValue += "; Secure";
         if (options?.httpOnly) cookieValue += "; HttpOnly";
         if (options?.sameSite) cookieValue += `; SameSite=${options.sameSite}`;
-        
+
         c.header("Set-Cookie", cookieValue, { append: true });
       });
     },
   };
 
-  const supabase = createServerClient(
-    supabaseUrl!,
-    supabaseKey!,
-    {
-      cookies,
-    },
-  );
+  if (!supabaseUrl || !supabaseKey) {
+    return c.json({ error: "Supabase configuration is missing" }, 500);
+  }
+
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies,
+  });
 
   try {
     const {
@@ -64,7 +71,7 @@ export async function authMiddleware(c: Context, next: Next) {
 
     await next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    console.error("Auth middleware error:", error);
     return c.json({ error: "Unauthorized" }, 401);
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
 import { clearAuthState } from "@/utils/supabase/clearAuth";
+import { createClient } from "@/utils/supabase/client";
 import type { LoginInput, SignupInput, User } from "../types";
 
 /**
@@ -22,13 +22,13 @@ export async function login(data: LoginInput): Promise<User | null> {
     throw new Error(error.message);
   }
 
-  if (!authData.user) {
+  if (!authData.user || !authData.user.email) {
     return null;
   }
 
   return {
     id: authData.user.id,
-    email: authData.user.email!,
+    email: authData.user.email,
     createdAt: new Date(authData.user.created_at),
   };
 }
@@ -51,13 +51,13 @@ export async function signup(data: SignupInput): Promise<User | null> {
     throw new Error(error.message);
   }
 
-  if (!authData.user) {
+  if (!authData.user || !authData.user.email) {
     return null;
   }
 
   return {
     id: authData.user.id,
-    email: authData.user.email!,
+    email: authData.user.email,
     createdAt: new Date(authData.user.created_at),
   };
 }
@@ -72,10 +72,10 @@ export async function logout(): Promise<void> {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error("Logout error:", error);
   } finally {
     // エラーの有無にかかわらず、ローカルの認証状態をクリア
     clearAuthState();
@@ -96,7 +96,10 @@ export async function getCurrentUser(): Promise<User | null> {
     } = await supabase.auth.getUser();
 
     // リフレッシュトークンエラーの場合はnullを返す
-    if (error?.message?.includes('refresh_token_not_found') || error?.status === 400) {
+    if (
+      error?.message?.includes("refresh_token_not_found") ||
+      error?.status === 400
+    ) {
       // セッションをクリア
       clearAuthState();
       await supabase.auth.signOut();
@@ -104,21 +107,21 @@ export async function getCurrentUser(): Promise<User | null> {
     }
 
     if (error) {
-      console.error('Get user error:', error);
+      console.error("Get user error:", error);
       return null;
     }
 
-    if (!user) {
+    if (!user || !user.email) {
       return null;
     }
 
     return {
       id: user.id,
-      email: user.email!,
+      email: user.email,
       createdAt: new Date(user.created_at),
     };
   } catch (error) {
-    console.error('Get current user error:', error);
+    console.error("Get current user error:", error);
     return null;
   }
 }
@@ -149,10 +152,10 @@ export function onAuthStateChange(
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) {
+    if (session?.user?.email) {
       callback({
         id: session.user.id,
-        email: session.user.email!,
+        email: session.user.email,
         createdAt: new Date(session.user.created_at),
       });
     } else {

@@ -1,20 +1,17 @@
+import type { User } from "@supabase/supabase-js";
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
-import type { User } from "@supabase/supabase-js";
 import { z } from "zod";
+import { authMiddleware } from "@/features/auth/utils/authMiddleware";
 import {
-  getTasks,
   createTask,
-  updateTask,
   deleteTask,
   getTaskById,
+  getTasks,
+  updateTask,
   updateTaskPositions,
 } from "@/features/task/services";
-import {
-  createTaskSchema,
-  updateTaskSchema,
-} from "@/features/task/types";
-import { authMiddleware } from "@/features/auth/utils/authMiddleware";
+import { createTaskSchema, updateTaskSchema } from "@/features/task/types";
 
 export const runtime = "nodejs";
 
@@ -51,16 +48,16 @@ app.post("/tasks", async (c) => {
   try {
     const userId = c.get("userId");
     const body = await c.req.json();
-    
+
     // バリデーション
     const result = createTaskSchema.safeParse(body);
     if (!result.success) {
       return c.json(
         { error: "Validation error", issues: result.error.issues },
-        400
+        400,
       );
     }
-    
+
     const task = await createTask({ ...result.data, userId });
     return c.json(task, 201);
   } catch (error) {
@@ -77,13 +74,13 @@ app.put("/tasks/:id", async (c) => {
     const userId = c.get("userId");
     const id = c.req.param("id");
     const body = await c.req.json();
-    
+
     // バリデーション
     const result = updateTaskSchema.safeParse(body);
     if (!result.success) {
       return c.json(
         { error: "Validation error", issues: result.error.issues },
-        400
+        400,
       );
     }
 
@@ -130,20 +127,20 @@ const updatePositionsSchema = z.object({
       id: z.string(),
       status: z.string(),
       position: z.number(),
-    })
+    }),
   ),
 });
 
 app.post("/tasks/positions", async (c) => {
   try {
     const body = await c.req.json();
-    
+
     // バリデーション
     const result = updatePositionsSchema.safeParse(body);
     if (!result.success) {
       return c.json(
         { error: "Validation error", issues: result.error.issues },
-        400
+        400,
       );
     }
 

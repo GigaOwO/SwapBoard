@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { User, AuthState, LoginInput, SignupInput } from "../types";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  login as loginService,
-  signup as signupService,
-  logout as logoutService,
   getCurrentUser,
+  login as loginService,
+  logout as logoutService,
   onAuthStateChange,
+  signup as signupService,
 } from "../services";
+import type { AuthState, LoginInput, SignupInput } from "../types";
 
 /**
  * 認証管理用カスタムフック
@@ -31,13 +31,13 @@ export function useAuth() {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       const user = await getCurrentUser();
-      
+
       if (!mountedRef.current) return;
-      
+
       setState({ user, loading: false, error: null });
     } catch (error) {
       if (!mountedRef.current) return;
-      
+
       setState({
         user: null,
         loading: false,
@@ -49,48 +49,54 @@ export function useAuth() {
   /**
    * ログイン
    */
-  const login = useCallback(async (data: LoginInput) => {
-    try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-      const user = await loginService(data);
-      setState({ user, loading: false, error: null });
-      // ログイン成功後、ホームページにリダイレクト
-      router.push("/");
-      return user;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to login";
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }));
-      throw error;
-    }
-  }, [router]);
+  const login = useCallback(
+    async (data: LoginInput) => {
+      try {
+        setState((prev) => ({ ...prev, loading: true, error: null }));
+        const user = await loginService(data);
+        setState({ user, loading: false, error: null });
+        // ログイン成功後、ホームページにリダイレクト
+        router.push("/");
+        return user;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to login";
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: errorMessage,
+        }));
+        throw error;
+      }
+    },
+    [router],
+  );
 
   /**
    * サインアップ
    */
-  const signup = useCallback(async (data: SignupInput) => {
-    try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-      const user = await signupService(data);
-      setState({ user, loading: false, error: null });
-      // サインアップ成功後、ホームページにリダイレクト
-      router.push("/");
-      return user;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to signup";
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }));
-      throw error;
-    }
-  }, [router]);
+  const signup = useCallback(
+    async (data: SignupInput) => {
+      try {
+        setState((prev) => ({ ...prev, loading: true, error: null }));
+        const user = await signupService(data);
+        setState({ user, loading: false, error: null });
+        // サインアップ成功後、ホームページにリダイレクト
+        router.push("/");
+        return user;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to signup";
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: errorMessage,
+        }));
+        throw error;
+      }
+    },
+    [router],
+  );
 
   /**
    * ログアウト
@@ -105,7 +111,7 @@ export function useAuth() {
     } catch (error) {
       // エラーがあってもユーザーをnullに設定
       setState({ user: null, loading: false, error: null });
-      console.error('Logout error in useAuth:', error);
+      console.error("Logout error in useAuth:", error);
       // エラーがあってもログインページにリダイレクト
       router.push("/login");
     }
@@ -122,7 +128,7 @@ export function useAuth() {
   useEffect(() => {
     mountedRef.current = true;
     fetchUser();
-    
+
     return () => {
       mountedRef.current = false;
     };

@@ -1,8 +1,12 @@
 "use client";
 
-import { memo, useCallback } from "react";
 import { useDroppable } from "@dnd-kit/core";
-import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, type TaskStatus } from "../constants";
+import { memo, useCallback } from "react";
+import {
+  TASK_STATUS_COLORS,
+  TASK_STATUS_LABELS,
+  type TaskStatus,
+} from "../constants";
 import type { Task } from "../types";
 import { TaskCard } from "./TaskCard";
 
@@ -41,9 +45,7 @@ function TaskColumnComponent({
           <h2 className={`font-semibold ${colors.text}`}>
             {TASK_STATUS_LABELS[status]}
           </h2>
-          <span className={`text-sm ${colors.text}`}>
-            {tasks.length}
-          </span>
+          <span className={`text-sm ${colors.text}`}>{tasks.length}</span>
         </div>
 
         <div
@@ -63,13 +65,16 @@ function TaskColumnComponent({
               />
             ))
           ) : (
-            <div className={`min-h-[100px] border-2 border-dashed rounded-lg flex items-center justify-center text-sm ${colors.border} ${colors.text} opacity-60`}>
+            <div
+              className={`min-h-[100px] border-2 border-dashed rounded-lg flex items-center justify-center text-sm ${colors.border} ${colors.text} opacity-60`}
+            >
               タスクなし
             </div>
           )}
         </div>
 
         <button
+          type="button"
           onClick={handleAddTask}
           className={`w-full mt-3 py-2 px-4 text-sm rounded-lg transition-colors border-2 border-dashed ${colors.border} ${colors.text} hover:bg-white/80`}
         >
