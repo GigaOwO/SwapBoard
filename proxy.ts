@@ -2,10 +2,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
 /**
- * Next.jsミドルウェア
+ * Next.jsプロキシ
  * 認証が必要なルートを保護する
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { response, user } = await updateSession(request);
 
   // 認証ページへのアクセス
@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * ミドルウェアを適用するパスの設定
+ * プロキシを適用するパスの設定
  */
 export const config = {
   matcher: [
