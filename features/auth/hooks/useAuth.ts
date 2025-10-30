@@ -136,12 +136,18 @@ export function useAuth() {
 
   // 認証状態の変更を監視
   useEffect(() => {
-    const unsubscribe = onAuthStateChange((user) => {
+    let unsubscribe: (() => void) | undefined;
+
+    onAuthStateChange((user) => {
       setState((prev) => ({ ...prev, user }));
+    }).then((unsub) => {
+      unsubscribe = unsub;
     });
 
     return () => {
-      unsubscribe();
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, []);
 

@@ -11,7 +11,7 @@ import type { LoginInput, SignupInput, User } from "../types";
  * @returns ユーザー情報またはnull
  */
 export async function login(data: LoginInput): Promise<User | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: authData, error } = await supabase.auth.signInWithPassword({
     email: data.email,
@@ -40,7 +40,7 @@ export async function login(data: LoginInput): Promise<User | null> {
  * @returns ユーザー情報またはnull
  */
 export async function signup(data: SignupInput): Promise<User | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: authData, error } = await supabase.auth.signUp({
     email: data.email,
@@ -66,7 +66,7 @@ export async function signup(data: SignupInput): Promise<User | null> {
  * ログアウト
  */
 export async function logout(): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     const { error } = await supabase.auth.signOut();
@@ -87,7 +87,7 @@ export async function logout(): Promise<void> {
  * @returns ユーザー情報またはnull
  */
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     const {
@@ -131,7 +131,7 @@ export async function getCurrentUser(): Promise<User | null> {
  * @returns セッション情報またはnull
  */
 export async function getSession() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { session },
@@ -144,10 +144,10 @@ export async function getSession() {
  * 認証状態の変更を監視
  * @param callback - 認証状態が変更されたときに実行するコールバック
  */
-export function onAuthStateChange(
+export async function onAuthStateChange(
   callback: (user: User | null) => void,
-): () => void {
-  const supabase = createClient();
+): Promise<() => void> {
+  const supabase = await createClient();
 
   const {
     data: { subscription },
